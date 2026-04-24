@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from pathlib import Path
 from typing import Iterable
 
 import matplotlib.pyplot as plt
@@ -14,6 +15,8 @@ def plot_dataset_samples(
     rows: int = 2,
     columns: int = 5,
     title: str = "Dataset Samples",
+    save_path: str | Path | None = None,
+    show: bool = True,
 ) -> None:
     batch = next(iter(dataset))
     images = batch["image"].numpy()
@@ -34,11 +37,15 @@ def plot_dataset_samples(
         axis.imshow(to_display_image(images[index]))
         axis.set_title(resolve_label_title(labels[index], label_names), fontsize=9)
 
-    plt.tight_layout()
-    plt.show()
+    finalize_figure(figure, save_path=save_path, show=show)
 
 
-def plot_training_curves(history, title: str = "Training History") -> None:
+def plot_training_curves(
+    history,
+    title: str = "Training History",
+    save_path: str | Path | None = None,
+    show: bool = True,
+) -> None:
     history_dict = history.history
     metric_names = [name for name in history_dict if not name.startswith("val_")]
 
@@ -55,11 +62,15 @@ def plot_training_curves(history, title: str = "Training History") -> None:
         axis.legend()
 
     figure.suptitle(title)
-    plt.tight_layout()
-    plt.show()
+    finalize_figure(figure, save_path=save_path, show=show)
 
 
-def plot_vae_losses(history, title: str = "VAE Loss Curves") -> None:
+def plot_vae_losses(
+    history,
+    title: str = "VAE Loss Curves",
+    save_path: str | Path | None = None,
+    show: bool = True,
+) -> None:
     keys = ["loss", "reconstruction_loss", "kl_loss"]
     figure, axes = plt.subplots(1, len(keys), figsize=(15, 4))
 
@@ -71,14 +82,15 @@ def plot_vae_losses(history, title: str = "VAE Loss Curves") -> None:
         axis.legend()
 
     figure.suptitle(title)
-    plt.tight_layout()
-    plt.show()
+    finalize_figure(figure, save_path=save_path, show=show)
 
 
 def plot_reconstruction_grid(
     example_batches: dict[str, np.ndarray],
     title: str = "Reconstruction Results",
     max_items: int = 6,
+    save_path: str | Path | None = None,
+    show: bool = True,
 ) -> None:
     original = example_batches["original"][:max_items]
     reconstructed = example_batches["reconstructed"][:max_items]
@@ -109,8 +121,7 @@ def plot_reconstruction_grid(
             axes[1, index].set_title("Reconstructed")
             axes[1, index].axis("off")
 
-    plt.tight_layout()
-    plt.show()
+    finalize_figure(figure, save_path=save_path, show=show)
 
 
 def plot_model_reconstructions(
@@ -119,6 +130,8 @@ def plot_model_reconstructions(
     vae_reconstructed: np.ndarray,
     title: str = "AE vs VAE Reconstructions",
     max_items: int = 6,
+    save_path: str | Path | None = None,
+    show: bool = True,
 ) -> None:
     max_items = min(max_items, len(original), len(ae_reconstructed), len(vae_reconstructed))
     if max_items == 0:
@@ -135,8 +148,7 @@ def plot_model_reconstructions(
             axes[row_index, col_index].set_title(row_titles[row_index])
             axes[row_index, col_index].axis("off")
 
-    plt.tight_layout()
-    plt.show()
+    finalize_figure(figure, save_path=save_path, show=show)
 
 
 def plot_latent_projection(
@@ -145,6 +157,8 @@ def plot_latent_projection(
     label_names: Iterable[str] | None = None,
     dims: int = 2,
     title: str = "Latent Space Projection",
+    save_path: str | Path | None = None,
+    show: bool = True,
 ) -> None:
     colors = color_values(labels, len(projected_points))
 
@@ -161,8 +175,7 @@ def plot_latent_projection(
         axis.set_ylabel("PC 2")
         axis.set_title(title)
         maybe_add_legend(axis, scatter, labels, label_names)
-        plt.tight_layout()
-        plt.show()
+        finalize_figure(figure, save_path=save_path, show=show)
         return
 
     figure = plt.figure(figsize=(8, 6))
@@ -180,14 +193,15 @@ def plot_latent_projection(
     axis.set_zlabel("PC 3")
     axis.set_title(title)
     maybe_add_legend(axis, scatter, labels, label_names)
-    plt.tight_layout()
-    plt.show()
+    finalize_figure(figure, save_path=save_path, show=show)
 
 
 def plot_generated_samples(
     images: np.ndarray,
     title: str = "Generated Samples",
     columns: int = 5,
+    save_path: str | Path | None = None,
+    show: bool = True,
 ) -> None:
     rows = math.ceil(len(images) / columns)
     figure, axes = plt.subplots(rows, columns, figsize=(columns * 2.3, rows * 2.3))
@@ -200,11 +214,15 @@ def plot_generated_samples(
         if index < len(images):
             axis.imshow(to_display_image(images[index]))
 
-    plt.tight_layout()
-    plt.show()
+    finalize_figure(figure, save_path=save_path, show=show)
 
 
-def plot_interpolation_grid(images: np.ndarray, title: str = "Latent Interpolation") -> None:
+def plot_interpolation_grid(
+    images: np.ndarray,
+    title: str = "Latent Interpolation",
+    save_path: str | Path | None = None,
+    show: bool = True,
+) -> None:
     figure, axes = plt.subplots(1, len(images), figsize=(len(images) * 2.2, 2.5))
     axes = np.atleast_1d(axes)
     figure.suptitle(title)
@@ -213,8 +231,7 @@ def plot_interpolation_grid(images: np.ndarray, title: str = "Latent Interpolati
         axis.imshow(to_display_image(image))
         axis.axis("off")
 
-    plt.tight_layout()
-    plt.show()
+    finalize_figure(figure, save_path=save_path, show=show)
 
 
 def to_display_image(image: np.ndarray) -> np.ndarray:
@@ -264,3 +281,14 @@ def maybe_add_legend(axis, scatter, labels, label_names) -> None:
             )
         )
     axis.legend(handles, [names[label] for label in valid_labels], title="Class", loc="best")
+
+
+def finalize_figure(figure, save_path: str | Path | None, show: bool) -> None:
+    figure.tight_layout()
+    if save_path is not None:
+        save_path = Path(save_path)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        figure.savefig(save_path, dpi=200, bbox_inches="tight")
+    if show:
+        plt.show()
+    plt.close(figure)

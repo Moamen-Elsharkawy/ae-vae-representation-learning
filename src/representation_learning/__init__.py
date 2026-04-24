@@ -1,5 +1,6 @@
 from .config import ExperimentConfig
 from .data import DatasetMetadata, build_datasets
+from .dataset_sources import prepare_medifics_mura_subset
 from .evaluation import (
     evaluate_reconstruction,
     interpolate_latent,
@@ -13,6 +14,7 @@ from .models import (
     build_denoising_autoencoder,
     build_vae,
 )
+from .runner import run_all_region_experiments
 from .training import KLAnealingCallback, add_gaussian_noise, train_model
 from .visualization import (
     plot_dataset_samples,
@@ -38,6 +40,7 @@ __all__ = [
     "build_vae",
     "evaluate_reconstruction",
     "interpolate_latent",
+    "prepare_medifics_mura_subset",
     "plot_dataset_samples",
     "plot_generated_samples",
     "plot_interpolation_grid",
@@ -47,6 +50,7 @@ __all__ = [
     "plot_training_curves",
     "plot_vae_losses",
     "project_latent",
+    "run_all_region_experiments",
     "sample_vae",
     "train_model",
 ]

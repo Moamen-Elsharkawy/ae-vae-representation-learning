@@ -138,7 +138,11 @@ def maybe_mount_google_drive(config: ExperimentConfig) -> None:
     if not config.mount_drive:
         return
 
-    drive_root = Path(config.drive_data_root)
+    data_root = config.resolved_data_root()
+    if not data_root:
+        return
+
+    drive_root = Path(data_root)
     if drive_root.exists():
         return
 
@@ -151,7 +155,11 @@ def maybe_mount_google_drive(config: ExperimentConfig) -> None:
 
 
 def resolve_dataset_root(config: ExperimentConfig) -> Path:
-    source_root = Path(config.drive_data_root)
+    resolved_root = config.resolved_data_root()
+    if not resolved_root:
+        raise FileNotFoundError("`ExperimentConfig.data_root` must point to a local dataset folder or archive.")
+
+    source_root = Path(resolved_root)
     extract_root = Path(config.extract_root)
 
     if source_root.is_dir():
@@ -169,8 +177,8 @@ def resolve_dataset_root(config: ExperimentConfig) -> Path:
         return extract_root
 
     raise FileNotFoundError(
-        "Could not resolve the dataset path. Point `drive_data_root` to either the "
-        "extracted dataset folder or the archive file stored in Google Drive."
+        "Could not resolve the dataset path. Point `data_root` to either the "
+        "prepared dataset folder or an archive file that can be extracted locally."
     )
 
 

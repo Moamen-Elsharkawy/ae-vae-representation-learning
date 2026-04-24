@@ -62,7 +62,7 @@ def train_model(
         validation_data=prepared_val,
         epochs=epochs,
         callbacks=callbacks,
-        verbose=1,
+        verbose=config.train_verbose,
     )
 
 

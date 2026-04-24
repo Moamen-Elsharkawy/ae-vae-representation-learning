@@ -1,67 +1,100 @@
 # DSAI 490 Assignment 1
 
-This project implements three representation-learning models for image reconstruction and generation:
+This repository trains a separate Autoencoder and Variational Autoencoder for each anatomical region in a lightweight MURA-based upper-extremity radiograph dataset.
 
-- A convolutional Autoencoder (AE)
-- A denoising Autoencoder
-- A Variational Autoencoder (VAE)
+## Recommended Data
 
-The code is organized so the reusable logic lives in Python modules under `src/representation_learning`, while the experiment flow lives in the Colab notebook under `notebooks/`.
+For a full medical-imaging version of the assignment, the strongest source is Stanford's MURA dataset because it already organizes upper-extremity radiographs into seven anatomical regions: elbow, finger, forearm, hand, humerus, shoulder, and wrist.
+
+For a runnable local workflow in this repository, the code prepares a smaller public MURA-derived subset from Hugging Face:
+
+- Official MURA overview: <https://aimi.stanford.edu/datasets/mura-msk-xrays>
+- Local runnable subset used by the scripts: <https://huggingface.co/datasets/MEDIFICS/MURADATASETSU>
+
+The preparation script downloads the subset, extracts the anatomical region from the metadata, converts every study image to grayscale PNG, and writes a local folder structure like this:
+
+```text
+data/prepared/medifics_mura/
+  elbow/
+    abnormal/
+    normal/
+  finger/
+    abnormal/
+    normal/
+  ...
+```
 
 ## Project Structure
 
 ```text
+scripts/
+  prepare_medifics_mura.py
+  run_local_project.py
 src/representation_learning/
   config.py
   data.py
+  dataset_sources.py
   models.py
   training.py
   evaluation.py
   visualization.py
-notebooks/
-  dsai490_assignment1_colab.ipynb
-report/
-  technical_report.md
-  video_demo_outline.md
+  runner.py
 tests/
   test_pipeline.py
 ```
 
-## Expected Workflow
+## Local Setup
 
-1. Upload the required image dataset archive to Google Drive.
-2. Open the notebook in Colab.
-3. Update `drive_data_root` so it points to the dataset archive or extracted dataset folder in Drive.
-4. Run the notebook cells in order.
-5. Export figures and metrics for the report and the video demo.
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
 
-## Notes About the Data Pipeline
+## Prepare The Dataset
 
-- The loader uses `tf.data` end to end.
-- If the dataset already contains `train/`, `val/`, and `test/` folders, those splits are used directly.
-- If no official split exists, the loader creates a `70/15/15` split with `seed=42`.
-- Folder names are preserved as labels for visualization when they exist, but training remains unsupervised.
-- If sample images are already square and at most `64x64`, the native size is kept; otherwise the loader resizes to `64x64`.
+```powershell
+python .\scripts\prepare_medifics_mura.py
+```
 
-## Local Sanity Check
+This creates the prepared per-region dataset under `data/prepared/medifics_mura/`.
 
-The repository includes a small test suite that creates a temporary image dataset and checks:
+## Run The Full Local Project
 
-- dataset loading
-- model output shapes
-- VAE loss tracking
-- a short overfit-style step on a single mini-batch
+```powershell
+python .\scripts\run_local_project.py
+```
 
-Run it with:
+The run trains:
+
+- one AE per anatomical region
+- one VAE per anatomical region
+
+and saves outputs to `artifacts/local_medical_runs/`.
+
+Each region folder contains:
+
+- dataset samples
+- AE training curves
+- VAE loss curves
+- AE and VAE reconstruction grids
+- AE vs VAE comparison plots
+- 2D and 3D latent visualizations
+- generated VAE samples
+- latent interpolation examples
+- `metrics.json`
+
+The script also writes a summary table to:
+
+```text
+artifacts/local_medical_runs/region_results.csv
+```
+
+## Tests
 
 ```powershell
 python -m unittest discover -s tests -v
 ```
 
-## Dependencies
-
-Install the required packages with:
-
-```powershell
-python -m pip install -r requirements.txt
-```
+The tests use a temporary synthetic dataset to validate the data pipeline and the core model code without downloading the real medical dataset.

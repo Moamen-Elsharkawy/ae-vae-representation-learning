@@ -155,7 +155,7 @@ def build_encoder(config: ExperimentConfig, variational: bool) -> EncoderArtifac
 
     encoder_inputs = keras.Input(shape=config.input_shape, name="encoder_input")
     x = encoder_inputs
-    for filters in (32, 64, 128):
+    for filters in config.conv_filters:
         x = layers.Conv2D(
             filters=filters,
             kernel_size=3,
@@ -166,7 +166,7 @@ def build_encoder(config: ExperimentConfig, variational: bool) -> EncoderArtifac
 
     encoded_shape = tuple(int(dim) for dim in x.shape[1:])
     x = layers.Flatten()(x)
-    x = layers.Dense(128, activation="relu")(x)
+    x = layers.Dense(config.dense_units, activation="relu")(x)
 
     if variational:
         z_mean = layers.Dense(config.latent_dim, name="z_mean")(x)
@@ -192,7 +192,7 @@ def build_decoder(config: ExperimentConfig, encoded_shape: tuple[int, int, int])
     x = layers.Dense(int(np.prod(encoded_shape)), activation="relu")(latent_inputs)
     x = layers.Reshape(encoded_shape)(x)
 
-    for filters in (128, 64, 32):
+    for filters in reversed(config.conv_filters):
         x = layers.Conv2DTranspose(
             filters=filters,
             kernel_size=3,

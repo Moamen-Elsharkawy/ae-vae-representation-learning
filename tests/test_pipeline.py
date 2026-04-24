@@ -23,6 +23,7 @@ from representation_learning import (  # noqa: E402
     build_vae,
     train_model,
 )
+from representation_learning.dataset_sources import flatten_conversation, infer_region, infer_status  # noqa: E402
 
 
 tf.config.threading.set_inter_op_parallelism_threads(1)
@@ -36,7 +37,7 @@ class PipelineTests(unittest.TestCase):
         self._create_fake_dataset()
 
         self.config = ExperimentConfig(
-            drive_data_root=str(self.data_root),
+            data_root=str(self.data_root),
             extract_root=str(Path(self.temp_dir.name) / "extracted"),
             output_dir=str(Path(self.temp_dir.name) / "outputs"),
             batch_size=4,
@@ -100,6 +101,23 @@ class PipelineTests(unittest.TestCase):
         images = batch["image"]
         losses = [float(autoencoder.train_on_batch(images, images)) for _ in range(5)]
         self.assertLess(losses[-1], losses[0])
+
+    def test_region_and_status_extraction(self) -> None:
+        conversation = {
+            "data": [
+                {
+                    "question": "What type of upper extremity radiograph is shown?",
+                    "answer": "The image shows a shoulder radiograph.",
+                },
+                {
+                    "question": "Is it normal?",
+                    "answer": "The shoulder has abnormalities.",
+                },
+            ]
+        }
+        text = flatten_conversation(conversation)
+        self.assertEqual(infer_region(text), "shoulder")
+        self.assertEqual(infer_status(" ".join(item["answer"] for item in conversation["data"])), "abnormal")
 
     def _create_fake_dataset(self) -> None:
         rng = np.random.default_rng(7)
