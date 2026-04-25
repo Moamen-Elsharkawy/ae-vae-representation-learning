@@ -6,7 +6,6 @@ import shutil
 from pathlib import Path
 
 import pandas as pd
-from datasets import load_dataset
 
 REGIONS = ("elbow", "finger", "forearm", "hand", "humerus", "shoulder", "wrist")
 ABNORMAL_PATTERN = re.compile(r"\babnormal(?:ity|ities)?\b", re.IGNORECASE)
@@ -31,6 +30,10 @@ def prepare_medifics_mura_subset(
     target_root.mkdir(parents=True, exist_ok=True)
 
     os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
+    patch_multiprocess_resource_tracker()
+
+    from datasets import load_dataset
+
     dataset = load_dataset(dataset_id, split="train")
 
     rows: list[dict[str, str]] = []
@@ -64,6 +67,15 @@ def prepare_medifics_mura_subset(
 
     pd.DataFrame(rows).sort_values(["region", "status", "id"]).to_csv(metadata_path, index=False)
     return target_root
+
+
+def patch_multiprocess_resource_tracker() -> None:
+    try:
+        from multiprocess import resource_tracker
+    except ImportError:
+        return
+
+    resource_tracker.ResourceTracker.__del__ = lambda self: None
 
 
 def flatten_conversation(conversation: dict[str, list[dict[str, str]]]) -> str:

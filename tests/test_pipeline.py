@@ -11,19 +11,20 @@ from PIL import Image
 
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 
-import tensorflow as tf
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from representation_learning import (  # noqa: E402
-    ExperimentConfig,
-    build_autoencoder,
-    build_datasets,
-    build_vae,
-    train_model,
-)
+from representation_learning.config import ExperimentConfig  # noqa: E402
+from representation_learning.runtime import configure_quiet_runtime  # noqa: E402
+
+configure_quiet_runtime()
+
+import tensorflow as tf
+
+from representation_learning.data import build_datasets  # noqa: E402
 from representation_learning.dataset_sources import flatten_conversation, infer_region, infer_status  # noqa: E402
+from representation_learning.models import build_autoencoder, build_vae  # noqa: E402
+from representation_learning.training import train_model  # noqa: E402
 
 
 tf.config.threading.set_inter_op_parallelism_threads(1)

@@ -8,9 +8,11 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from representation_learning.config import ExperimentConfig  # noqa: E402
 from representation_learning.dataset_sources import prepare_medifics_mura_subset  # noqa: E402
+from representation_learning.runtime import configure_quiet_runtime  # noqa: E402
 
 
 def main() -> None:
+    configure_quiet_runtime()
     config = ExperimentConfig()
     prepared_root = prepare_medifics_mura_subset(
         target_root=config.data_root,
